@@ -1,11 +1,17 @@
+import java.util.Scanner;
+
 public class Main
 {
     public static void main(String[] args)
     {
         Board board = new Board();
 
-        board.clearBoard();
         board.placeBoats();
-        board.displayBoard();
+        board.displayIBoard();
+
+        while (board.move())
+        {
+            board.displayBoard();
+        }
     }
 }

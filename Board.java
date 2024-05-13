@@ -1,8 +1,10 @@
 import java.util.Random;
+import java.util.Scanner;
 
 public class Board
 {
     private char[][] board = new char[10][10];
+    private char[][] gboard = new char[10][10];
 
     private static String to_string(char boardPos)
     {
@@ -18,6 +20,7 @@ public class Board
             for (int x = 0; x < 10; ++x)
             {
                 board[y][x] = '-';
+                gboard[y][x] = '-';
             }
         }
     }
@@ -180,7 +183,7 @@ public class Board
 
     private static char[] side = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
-    public void displayBoard()
+    public void displayIBoard()
     {
         System.out.println("  0123456789");
         for (int y = 0; y < 10; ++y)
@@ -194,5 +197,113 @@ public class Board
 
             System.out.println("");
         }
+    }
+
+    public void displayBoard()
+    {
+        System.out.println("  0123456789");
+        for (int y = 0; y < 10; ++y)
+        {
+            System.out.printf(side[y] + " ");
+
+            for (int x = 0; x < 10; ++x)
+            {
+                System.out.printf(String.valueOf(gboard[y][x]));
+            }
+
+            System.out.println("");
+        }
+    }
+
+    private int misscount = 0;
+
+    private boolean hitcount(char v)
+    {
+        int cv = 0;
+
+        int[] idx = new int[10];
+
+        for (int y = 0; y < gboard.length; ++y)
+        {
+            for (int x = 0; x < gboard[y].length; ++x)
+            {
+                if (board[y][x] == v && gboard[y][x] == 'h')
+                {
+                    idx[cv * 2] = y;
+                    idx[cv * 2 + 1] = x;
+
+                    ++cv;
+                }
+            }
+        }
+
+        if (cv == Integer.parseInt(String.valueOf(v)))
+        {
+            for (int i = 0; i < cv; ++i)
+            {
+                gboard[idx[i * 2]][idx[i * 2 + 1]] = 's';
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean move()
+    {
+        System.out.println("Total misses: " + misscount);
+        int x = SafeInput.getRangedInt(new Scanner(System.in), "x: ", 0, 10);
+
+        String yy = "";
+
+        while (yy.length() != 1 || (yy.charAt(0) < 'A' && yy.charAt(0) > 'J'))
+        {
+            if (yy != "")
+                System.out.println("Incorrect input, needs to be a letter from 'A' to 'J'!");
+
+            yy = SafeInput.getNonZeroLenString(new Scanner(System.in), "y: ");
+        }
+
+        int y = yy.charAt(0) - 'A';
+
+        if (gboard[y][x] != '-')
+        {
+            System.out.println("You already guessed there!");
+
+            move();
+        }
+
+        else if (board[y][x] != '-')
+        {
+            gboard[y][x] = 'h';
+
+            if (hitcount(board[y][x]))
+            {
+                System.out.println("You sunk a boat!");
+            }
+
+            else {
+                System.out.println("You hit a boat!");
+            }
+
+            misscount = 0;
+        }
+
+        else {
+            System.out.println("You missed!");
+            gboard[y][x] = 'm';
+
+            if (misscount == 5)
+            {
+                System.out.println("You lost!");
+
+                return false;
+            }
+
+            ++misscount;
+        }
+
+        return true;
     }
 }
