@@ -9,9 +9,20 @@ public class Main
         board.placeBoats();
         board.displayIBoard();
 
-        while (board.move())
+        while (true)
         {
-            board.displayBoard();
+            if (board.move())
+                board.displayBoard();
+            else {
+                if (SafeInput.getYN(new Scanner(System.in), "Do you want to play again? "))
+                {
+                    board.placeBoats();
+                }
+
+                else {
+                    break;
+                }
+            }
         }
     }
 }

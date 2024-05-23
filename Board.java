@@ -1,3 +1,7 @@
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -6,13 +10,16 @@ public class Board
     private char[][] board = new char[10][10];
     private char[][] gboard = new char[10][10];
 
+    // the board holds chars, this displays them as strings
     private static String to_string(char boardPos)
     {
-        if (boardPos == '-') return "\uD83C\uDF0A";
-        if (boardPos != '-') return "\u26F4";
-        return "X";
+        if (boardPos == 'm') return "\uD83D\uDCA6";
+        if (boardPos == 'h') return "\uD83D\uDCA5";
+        if (boardPos == 's') return "\uD83D\uDD25";
+        else return "\uD83C\uDF0A";
     }
 
+    // clears the board
     public void clearBoard()
     {
         for (int y = 0; y < 10; ++y)
@@ -23,10 +30,14 @@ public class Board
                 gboard[y][x] = '-';
             }
         }
+
+        // this is needed to display utf stuff
+        createPrintStream();
     }
 
     private static Random random = new Random();
 
+    // places a ship of size 2
     private void place2()
     {
         int x = random.nextInt(9);
@@ -59,6 +70,7 @@ public class Board
             board[y][x + 1] = '2';
         }
     }
+    // places a ship of size 3
     private void place3()
     {
         int x = random.nextInt(8);
@@ -93,7 +105,7 @@ public class Board
             board[y][x + 2] = '3';
         }
     }
-
+    // places a ship of size 4
     private void place4()
     {
         int x = random.nextInt(7);
@@ -130,7 +142,7 @@ public class Board
             board[y][x + 3] = '4';
         }
     }
-
+    // places a ship of size 5
     private void place5()
     {
         int x = random.nextInt(6);
@@ -170,6 +182,7 @@ public class Board
         }
     }
 
+    // places all the boats
     public void placeBoats()
     {
         clearBoard();
@@ -181,14 +194,14 @@ public class Board
         place5();
     }
 
-    private static char[] side = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
-
+    // this is the debug display thingy
     public void displayIBoard()
     {
         System.out.println("  0123456789");
+
         for (int y = 0; y < 10; ++y)
         {
-            System.out.printf(side[y] + " ");
+            stream.printf("\uFF21" + y);
 
             for (int x = 0; x < 10; ++x)
             {
@@ -199,16 +212,47 @@ public class Board
         }
     }
 
+    // needed for utf to display properly
+    private PrintStream stream;
+    // needed for utf to display properly
+    private void createPrintStream()
+    {
+        Charset utf8 = Charset.forName("UTF-8");
+
+        try
+        {
+            stream = new PrintStream(System.out, true, utf8.name());
+        }
+
+        catch (UnsupportedEncodingException e)
+        {
+
+        }
+    }
+
+    // prints the board
     public void displayBoard()
     {
-        System.out.println("  0123456789");
+        stream.printf("  " + String.valueOf('\uFF21') + " ");
+        stream.printf(String.valueOf('\uFF22') + " ");
+        stream.printf(String.valueOf('\uFF23') + " ");
+        stream.printf(String.valueOf('\uFF24') + " ");
+        stream.printf(String.valueOf('\uFF25') + " ");
+        stream.printf(String.valueOf('\uFF26') + " ");
+        stream.printf(String.valueOf('\uFF27') + " ");
+        stream.printf(String.valueOf('\uFF28') + " ");
+        stream.printf(String.valueOf('\uFF29') + " ");
+        stream.printf(String.valueOf('\uFF2A') + " ");
+        stream.println("");
+
         for (int y = 0; y < 10; ++y)
         {
-            System.out.printf(side[y] + " ");
+            stream.printf(String.valueOf(y) + " ");
 
             for (int x = 0; x < 10; ++x)
             {
-                System.out.printf(String.valueOf(gboard[y][x]));
+                stream.printf(to_string(gboard[y][x]) + " ");
+                //writer.printf(gboard[y][x] != '-' ? String.valueOf(gboard[y][x]) : "\uD83C\uDF0A");
             }
 
             System.out.println("");
@@ -216,7 +260,10 @@ public class Board
     }
 
     private int misscount = 0;
+    private int strikes = 0;
+    private int hits = 0;
 
+    // checks to see if the boat is a hit or a sink, this is purely visual
     private boolean hitcount(char v)
     {
         int cv = 0;
@@ -250,23 +297,28 @@ public class Board
         return false;
     }
 
+    // move logic
     public boolean move()
     {
         System.out.println("Total misses: " + misscount);
-        int x = SafeInput.getRangedInt(new Scanner(System.in), "x: ", 0, 10);
+        System.out.println("Total strikes: " + strikes);
 
-        String yy = "";
-
-        while (yy.length() != 1 || (yy.charAt(0) < 'A' && yy.charAt(0) > 'J'))
+        // all below gets the x value
+        String xx = "";
+        while (xx.length() != 1 || (xx.charAt(0) < 'A' && xx.charAt(0) > 'J'))
         {
-            if (yy != "")
+            if (xx != "")
                 System.out.println("Incorrect input, needs to be a letter from 'A' to 'J'!");
 
-            yy = SafeInput.getNonZeroLenString(new Scanner(System.in), "y: ");
+            xx = SafeInput.getNonZeroLenString(new Scanner(System.in), "x: ");
         }
 
-        int y = yy.charAt(0) - 'A';
+        int x = xx.charAt(0) - 'A';
 
+        // below is the y coordinate
+        int y = SafeInput.getRangedInt(new Scanner(System.in), "y: ", 0, 10);
+
+        // already guessed here
         if (gboard[y][x] != '-')
         {
             System.out.println("You already guessed there!");
@@ -274,6 +326,7 @@ public class Board
             move();
         }
 
+        // its a hit
         else if (board[y][x] != '-')
         {
             gboard[y][x] = 'h';
@@ -288,20 +341,44 @@ public class Board
             }
 
             misscount = 0;
+            ++hits;
         }
 
+        // miss, does the strike logic
         else {
             System.out.println("You missed!");
             gboard[y][x] = 'm';
 
+            ++misscount;
+
             if (misscount == 5)
             {
-                System.out.println("You lost!");
+                misscount = 0;
 
-                return false;
+                ++strikes;
+
+                if (strikes == 3)
+                {
+                    strikes = 0;
+
+                    System.out.println("You got 3 strikes!");
+                    System.out.println("You lost!");
+
+                    return false;
+                }
             }
+        }
 
-            ++misscount;
+        // if you win
+        if (hits == 17)
+        {
+            hits = 0;
+            misscount = 0;
+            strikes = 0;
+
+            System.out.println("You won the game, you sunk all the boats!");
+
+            return false;
         }
 
         return true;
